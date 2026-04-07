@@ -193,13 +193,13 @@ Expanded(
   child: StreamBuilder<QuerySnapshot>(
     stream: _getProducts(), 
     builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-  if (streamSnapshot.connectionState == ConnectionState.waiting) {
-    return const Center(child: CircularProgressIndicator());
-  }
+        if (streamSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-  if (!streamSnapshot.hasData || streamSnapshot.data!.docs.isEmpty) {
-    return const Center(child: Text("No products found"));
-  }
+        if (!streamSnapshot.hasData || streamSnapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("No products found"));
+        }
 
         return ListView.builder(
           itemCount: streamSnapshot.data!.docs.length,
