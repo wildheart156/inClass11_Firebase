@@ -98,7 +98,7 @@ class _HomePageState extends State<HomePage> {
 
   // TODO: Complete this function!
   Future<void> _deleteProduct(String productId) async {
-    // Your code here
+    await _products.doc(productId).delete();
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('You have successfully deleted a product')),
