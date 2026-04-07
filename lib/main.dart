@@ -32,6 +32,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String _searchQuery = '';
+  double? _minPrice;
+  double? _maxPrice;
+
+  Stream<QuerySnapshot> _getProducts() {
+    if (_searchQuery.isNotEmpty) {
+      return FirebaseFirestore.instance
+          .collection('products')
+          .where('name', isGreaterThanOrEqualTo: _searchQuery)
+          .where('name', isLessThanOrEqualTo: _searchQuery + '\uf8ff')
+          .snapshots();
+    }
+
+    if (_minPrice != null && _maxPrice != null) {
+      return FirebaseFirestore.instance
+          .collection('products')
+          .where('price', isGreaterThanOrEqualTo: _minPrice)
+          .where('price', isLessThanOrEqualTo: _maxPrice)
+          .snapshots();
+    }
+
+    return _products.snapshots();
+  }
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
@@ -109,40 +132,110 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('CRUD Operations')),
-      body: StreamBuilder(
-        stream: _products.snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-          if (streamSnapshot.hasData) {
-            return ListView.builder(
-              itemCount: streamSnapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final DocumentSnapshot documentSnapshot =
-                    streamSnapshot.data!.docs[index];
-                return Card(
-                  margin: const EdgeInsets.all(10),
-                  child: ListTile(
-                    title: Text(documentSnapshot['name']),
-                    subtitle: Text(documentSnapshot['price'].toString()),
-                    trailing: SizedBox(
-                      width: 100,
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _createOrUpdate(documentSnapshot),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteProduct(documentSnapshot.id),
-                          ),
-                        ],
+      body: 
+      Column(
+  children: [
+    Padding(
+      padding: const EdgeInsets.all(10),
+      child: TextField(
+        decoration: const InputDecoration(
+          labelText: 'Search by name',
+          border: OutlineInputBorder(),
+        ),
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.toLowerCase();
+          });
+        },
+      ),
+    ),
+
+    Row(
+      children: [
+        Expanded(
+          child: TextField(
+            decoration: const InputDecoration(labelText: 'Min Price'),
+            keyboardType: TextInputType.number,
+            onChanged: (value) {
+              _minPrice = double.tryParse(value);
+            },
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            decoration: const InputDecoration(labelText: 'Max Price'),
+            keyboardType: TextInputType.number,
+            onChanged: (value) {
+              _maxPrice = double.tryParse(value);
+            },
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {});
+          },
+          child: const Text('Filter'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              _searchQuery = '';
+              _minPrice = null;
+              _maxPrice = null;
+            });
+          },
+          child: const Text('Reset'),
+        ),
+      ],
+    ),
+
+Expanded(
+  child: StreamBuilder<QuerySnapshot>(
+    stream: _getProducts(), 
+    builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+      if (streamSnapshot.hasData) {
+        if (streamSnapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("No products found"));
+        }
+
+        return ListView.builder(
+          itemCount: streamSnapshot.data!.docs.length,
+          itemBuilder: (context, index) {
+            final DocumentSnapshot documentSnapshot =
+                streamSnapshot.data!.docs[index];
+
+            return Card(
+              margin: const EdgeInsets.all(10),
+              child: ListTile(
+                title: Text(documentSnapshot['name']),
+                subtitle: Text(documentSnapshot['price'].toString()),
+                trailing: SizedBox(
+                  width: 100,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () =>
+                            _createOrUpdate(documentSnapshot),
                       ),
-                    ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () =>
+                            _deleteProduct(documentSnapshot.id),
+                      ),
+                    ],
                   ),
-                );
-              },
+                ),
+              ),
             );
-          }
+          },
+        );
+      }
+
+      return const Center(child: CircularProgressIndicator());
+    },
+  ),
+),
           return const Center(child: CircularProgressIndicator());
         },
       ),
