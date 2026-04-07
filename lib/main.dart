@@ -222,27 +222,21 @@ Expanded(
                         icon: const Icon(Icons.delete),
                         onPressed: () =>
                             _deleteProduct(documentSnapshot.id),
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      }
-
-      return const Center(child: CircularProgressIndicator());
-    },
-  ),
-),
-          return const Center(child: CircularProgressIndicator());
+              );
+            },
+          );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _createOrUpdate(),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
+    ),
+  ],
+),
+
+floatingActionButton: FloatingActionButton(
+  onPressed: () => _createOrUpdate(),
+  child: const Icon(Icons.add),
+),
